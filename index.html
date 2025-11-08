@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blinkit Product Finder</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center pt-10">
+
+    <div class="w-full max-w-4xl bg-white rounded-lg shadow-lg p-6 md:p-8">
+        
+        <!-- Header -->
+        <div class="flex items-center space-x-2 mb-6 pb-6 border-b border-gray-200">
+            <svg class="w-10 h-10 text-yellow-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM6.97 6.03a.75.75 0 011.06 0L10 7.94l1.97-1.91a.75.75 0 111.06 1.06L11.06 9l1.97 1.91a.75.75 0 11-1.06 1.06L10 10.06l-1.97 1.91a.75.75 0 01-1.06-1.06L8.94 9 6.97 7.09a.75.75 0 010-1.06z" clip-rule="evenodd"></path></svg>
+            <h1 class="text-3xl font-bold text-gray-800">Blink<span class="text-yellow-500">it</span> Live Product Finder</h1>
+        </div>
+
+        <!-- Input Section -->
+        <div class="flex flex-col sm:flex-row sm:items-end sm:space-x-4 space-y-4 sm:space-y-0">
+            <div class="flex-1">
+                <label for="pincode" class="block text-sm font-medium text-gray-700 mb-1">Enter Pincode</label>
+                <input type="text" id="pincode" value="122009" class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="e.g., 122009">
+            </div>
+            <button id="search-button" class="w-full sm:w-auto px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-md hover:bg-green-700 transition-colors flex items-center justify-center space-x-2">
+                <svg id="search-icon" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+                <svg id="loading-spinner" class="w-5 h-5 animate-spin hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span id="button-text">Get Live Results</span>
+            </button>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error-message" class="hidden mt-4 p-4 bg-red-100 text-red-700 border border-red-300 rounded-lg"></div>
+
+        <!-- Results Section -->
+        <div id="results-container" class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <!-- Headphones Column -->
+            <div>
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4 pb-2 border-b-2 border-green-500">
+                    Top 10 Headphones<span class="text-red-500 ml-1">*</span>
+                </h2>
+                <div id="headphones-results" class="space-y-3">
+                    <!-- Results will be injected here by JS -->
+                    <p class="text-gray-500">Click the button to get live results...</p>
+                </div>
+            </div>
+
+            <!-- Earbuds Column -->
+            <div>
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4 pb-2 border-b-2 border-yellow-500">
+                    Top 10 Earbuds<span class="text-red-500 ml-1">*</span>
+                </h2>
+                <div id="earbuds-results" class="space-y-3">
+                    <!-- Results will be injected here by JS -->
+                    <p class="text-gray-500">Click the button to get live results...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="mt-4 text-sm text-gray-600">
+            <span class="text-red-500">*</span> means based on search results
+        </div>
+
+    </div>
+
+    <script>
+        // --- Frontend JavaScript ---
+
+        const searchButton = document.getElementById('search-button');
+        const pincodeInput = document.getElementById('pincode');
+        
+        const headphonesList = document.getElementById('headphones-results');
+        const earbudsList = document.getElementById('earbuds-results');
+        
+        const errorMessage = document.getElementById('error-message');
+        
+        const searchIcon = document.getElementById('search-icon');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const buttonText = document.getElementById('button-text');
+
+        searchButton.addEventListener('click', getBlinkitData);
+
+        async function getBlinkitData() {
+            const pincode = pincodeInput.value;
+            if (!pincode || pincode.trim().length === 0) {
+                showError("Please enter a valid pincode.");
+                return;
+            }
+
+            // --- Set UI to Loading State ---
+            setLoading(true);
+            headphonesList.innerHTML = '<p class="text-gray-500">Connecting to server... this might take a moment...</p>';
+            earbudsList.innerHTML = '<p class="text-gray-500">Your backend is now preparing to scrape Blinkit...</p>';
+            
+            try {
+                // --- This is the API call to YOUR backend server ---
+                const response = await fetch(`/api/get-products?pincode=${pincode}`);
+
+                // --- THIS IS THE FIX ---
+                // 1. Check if the server responded correctly
+                if (!response.ok) {
+                    // Try to get a more detailed error message from the server
+                    const errData = await response.json();
+                    throw new Error(errData.error || `Server returned ${response.status} ${response.statusText}`);
+                }
+
+                // 2. This is the missing line that defines 'data'!
+                const data = await response.json(); 
+                // --- END OF FIX ---
+
+                // Now this 'data' variable exists
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // --- Populate Results ---
+                populateList(headphonesList, data.headphones);
+                populateList(earbudsList, data.earbuds);
+
+            } catch (err) {
+                console.error(err);
+                showError(`Failed to fetch data. (Error: ${err.message}). Is your backend server running?`);
+            } finally {
+                // --- Set UI back to normal ---
+                setLoading(false);
+            }
+        }
+
+        function populateList(element, items) {
+            if (!items || items.length === 0) {
+                element.innerHTML = '<p class="text-gray-500">No products found for this search.</p>';
+                return;
+            }
+            
+            // Generate HTML for each product item
+            element.innerHTML = items.map((item, index) => `
+                <div class="flex justify-between items-start bg-gray-50 p-3 rounded-lg shadow-sm">
+                    <span class="text-gray-800 text-sm flex-1 pr-2">
+                        <span class="font-bold w-6 inline-block">${index + 1}.</span>
+                        ${item.name}
+                    </span>
+                    <span class="font-bold text-green-700 whitespace-nowrap">${item.price}</span>
+                </div>
+            `).join('');
+        }
+
+        function showError(message) {
+            errorMessage.classList.remove('hidden');
+            errorMessage.textContent = message;
+        }
+
+        function setLoading(isLoading) {
+            if (isLoading) {
+                searchButton.disabled = true;
+                searchButton.classList.add('opacity-75', 'cursor-not-allowed');
+                searchIcon.classList.add('hidden');
+                loadingSpinner.classList.remove('hidden');
+                buttonText.textContent = 'Fetching...';
+                errorMessage.classList.add('hidden'); // Hide old errors
+            } else {
+                searchButton.disabled = false;
+                searchButton.classList.remove('opacity-75', 'cursor-not-allowed');
+                searchIcon.classList.remove('hidden');
+                loadingSpinner.classList.add('hidden');
+                buttonText.textContent = 'Get Live Results';
+            }
+        }
+    </script>
+</body>
+</html>
