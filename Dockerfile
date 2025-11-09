@@ -49,14 +49,16 @@ RUN apt-get update \
 # 4. Copy package files
 COPY package*.json ./
 
-# 5. Set the cache directory *before* install
-ENV PUPPETEER_CACHE_DIR=/usr/src/app/.cache/puppeteer
+# 5. --- THIS IS THE FIX ---
+# Set the cache directory to Render's persistent cache
+# This MUST match the variable in the Render UI
+ENV PUPPETEER_CACHE_DIR=/opt/render/.cache/puppeteer
 
 # 6. Install app dependencies
 RUN npm install
 
-# 7. --- THIS IS THE NEW FIX ---
-# Run Puppeteer's built-in install script directly
+# 7. Run Puppeteer's built-in install script
+# This will now install the browser into /opt/render/.cache/puppeteer
 RUN node node_modules/puppeteer/install.mjs
 
 # 8. Copy the rest of your app's source code
