@@ -4,7 +4,7 @@ FROM node:18-slim
 # 2. Set the working directory
 WORKDIR /usr/src/app
 
-# 3. Install *only* the necessary system dependencies for Chrome
+# 3. Install system dependencies for Chrome
 RUN apt-get update \
     && apt-get install -y \
     ca-certificates \
@@ -49,21 +49,21 @@ RUN apt-get update \
 # 4. Copy package files
 COPY package*.json ./
 
-# 5. Install app dependencies
-RUN npm install
-
-# 6. --- THIS IS THE FIX ---
-# Set the cache directory *inside* our app folder
+# 5. Set the cache directory *before* install
 ENV PUPPETEER_CACHE_DIR=/usr/src/app/.cache/puppeteer
 
-# Run Puppeteer's built-in command to install the correct browser
-RUN npx puppeteer browsers install chrome
+# 6. Install app dependencies
+RUN npm install
 
-# 7. Copy the rest of your app's source code
+# 7. --- THIS IS THE NEW FIX ---
+# Run Puppeteer's built-in install script directly
+RUN node node_modules/puppeteer/install.mjs
+
+# 8. Copy the rest of your app's source code
 COPY . .
 
-# 8. Expose the port
+# 9. Expose the port
 EXPOSE 3000
 
-# 9. Run the "start" script
+# 10. Run the "start" script
 CMD [ "npm", "start" ]
