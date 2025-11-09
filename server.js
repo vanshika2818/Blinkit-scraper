@@ -37,13 +37,18 @@ app.get('/api/get-products', async (req, res) => {
 async function scrapeBlinkit(pincode) {
     let browser = null; 
 
-    try {
+   try {
         // --- A. Launch the Browser (AUTOMATED MODE) ---
         console.log("Launching headless browser...");
         browser = await puppeteer.launch({
-            headless: true, // Run invisibly
-            executablePath: puppeteer.executablePath(), // <-- THIS IS THE FIX
-            args: ['--no-sandbox', '--disable-setuid-sandbox'] 
+            headless: true,
+            executablePath: '/usr/bin/google-chrome-stable', // <-- THIS IS THE FIX
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage', // Added for stability in Docker
+                '--single-process'          // Added for stability in Docker
+            ] 
         });
         const page = await browser.newPage();
         

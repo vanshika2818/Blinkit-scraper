@@ -4,7 +4,7 @@ FROM node:18-slim
 # 2. Set the working directory
 WORKDIR /usr/src/app
 
-# 3. Install system dependencies for Chrome
+# 3. Install ALL dependencies and Google Chrome
 RUN apt-get update \
     && apt-get install -y \
     ca-certificates \
@@ -43,29 +43,33 @@ RUN apt-get update \
     lsb-release \
     wget \
     xdg-utils \
+    gnupg \
     --no-install-recommends \
+    # Add Google Chrome's official PPA
+    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome-archive-keyring.gpg \
+    && sh -c 'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome-archive-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list' \
+    # Install Google Chrome
+    && apt-get update \
+    && apt-get install -y \
+    google-chrome-stable \
+    --no-install-recommends \
+    # Clean up
     && rm -rf /var/lib/apt/lists/*
 
 # 4. Copy package files
 COPY package*.json ./
 
-# 5. --- THIS IS THE FIX ---
-# Set the cache directory to Render's persistent cache
-# This MUST match the variable in the Render UI
-ENV PUPPETEER_CACHE_DIR=/opt/render/.cache/puppeteer
+# 5. Tell Puppeteer NOT to download its own browser
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 # 6. Install app dependencies
 RUN npm install
 
-# 7. Run Puppeteer's built-in install script
-# This will now install the browser into /opt/render/.cache/puppeteer
-RUN node node_modules/puppeteer/install.mjs
-
-# 8. Copy the rest of your app's source code
+# 7. Copy the rest of your app's source code
 COPY . .
 
-# 9. Expose the port
+# 8. Expose the port
 EXPOSE 3000
 
-# 10. Run the "start" script
+# 9. Run the "start" script
 CMD [ "npm", "start" ]
