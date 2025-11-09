@@ -4,9 +4,9 @@ FROM node:18-slim
 # 2. Set the working directory
 WORKDIR /usr/src/app
 
-# 3. Install system dependencies AND chromium
-RUN apt-get update && apt-get install -y \
-    chromium \
+# 3. Install *only* the necessary system dependencies for Chrome
+RUN apt-get update \
+    && apt-get install -y \
     ca-certificates \
     fonts-liberation \
     libasound2 \
@@ -44,23 +44,28 @@ RUN apt-get update && apt-get install -y \
     wget \
     xdg-utils \
     --no-install-recommends \
-    # Clean up
     && rm -rf /var/lib/apt/lists/*
 
 # 4. Copy package files
 COPY package*.json ./
 
-# 5. Tell Puppeteer NOT to download its own browser
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+# 5. --- THIS IS THE FIX ---
+# Set the cache directory to Render's persistent cache
+# This MUST match the variable in the Render UI
+ENV PUPPETEER_CACHE_DIR=/opt/render/project/src/.cache/puppeteer
 
-# 6. Install app dependencies
+# 6. Install app dependencies (will use the cache dir)
 RUN npm install
 
-# 7. Copy the rest of your app's source code
+# 7. Run Puppeteer's built-in install script
+# This will now install the browser into the correct cache
+RUN node node_modules/puppeteer/install.mjs
+
+# 8. Copy the rest of your app's source code
 COPY . .
 
-# 8. Expose the port
+# 9. Expose the port
 EXPOSE 3000
 
-# 9. Run the "start" script
+# 10. Run the "start" script
 CMD [ "npm", "start" ]

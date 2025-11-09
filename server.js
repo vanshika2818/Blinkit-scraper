@@ -41,13 +41,13 @@ async function scrapeBlinkit(pincode) {
         // --- A. Launch the Browser (AUTOMATED MODE) ---
         console.log("Launching headless browser...");
         browser = await puppeteer.launch({
-            headless: true,
-            executablePath: '/usr/bin/chromium-browser', // <-- THIS IS THE FIX
+            headless: true, 
+            executablePath: puppeteer.executablePath(), // <-- THIS IS THE FIX
             args: [
-                '--no-sandbox',
+                '--no-sandbox', 
                 '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--single-process'
+                '--disable-dev-shm-usage', // Added for stability
+                '--single-process'         // Added for stability
             ] 
         });
         const page = await browser.newPage();
