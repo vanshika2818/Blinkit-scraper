@@ -42,7 +42,7 @@ async function scrapeBlinkit(pincode) {
         console.log("Launching headless browser...");
         browser = await puppeteer.launch({
             headless: true,
-            executablePath: '/usr/bin/chromium', // <-- THIS IS THE FIX
+            executablePath: '/usr/bin/chromium-browser', // <-- THIS IS THE FIX
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
