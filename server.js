@@ -42,6 +42,7 @@ async function scrapeBlinkit(pincode) {
         console.log("Launching headless browser...");
         browser = await puppeteer.launch({
             headless: true, // Run invisibly
+            executablePath: puppeteer.executablePath(), // <-- THIS IS THE FIX
             args: ['--no-sandbox', '--disable-setuid-sandbox'] 
         });
         const page = await browser.newPage();
@@ -117,6 +118,7 @@ async function scrapeBlinkit(pincode) {
         return { headphones, earbuds };
 
     } catch (error) {
+        // Line 120 from your error log
         throw new Error(`Puppeteer error: ${error.message}`);
     } finally {
         // --- J. Always Close the Browser ---
