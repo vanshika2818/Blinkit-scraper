@@ -42,12 +42,12 @@ async function scrapeBlinkit(pincode) {
         console.log("Launching headless browser...");
         browser = await puppeteer.launch({
             headless: true,
-            executablePath: '/usr/bin/google-chrome-stable', // <-- THIS IS THE FIX
+            executablePath: '/usr/bin/chromium', // <-- THIS IS THE FIX
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage', // Added for stability in Docker
-                '--single-process'          // Added for stability in Docker
+                '--disable-dev-shm-usage',
+                '--single-process'
             ] 
         });
         const page = await browser.newPage();

@@ -4,9 +4,9 @@ FROM node:18-slim
 # 2. Set the working directory
 WORKDIR /usr/src/app
 
-# 3. Install ALL dependencies and Google Chrome
-RUN apt-get update \
-    && apt-get install -y \
+# 3. Install system dependencies AND chromium
+RUN apt-get update && apt-get install -y \
+    chromium \
     ca-certificates \
     fonts-liberation \
     libasound2 \
@@ -43,15 +43,6 @@ RUN apt-get update \
     lsb-release \
     wget \
     xdg-utils \
-    gnupg \
-    --no-install-recommends \
-    # Add Google Chrome's official PPA
-    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome-archive-keyring.gpg \
-    && sh -c 'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome-archive-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list' \
-    # Install Google Chrome
-    && apt-get update \
-    && apt-get install -y \
-    google-chrome-stable \
     --no-install-recommends \
     # Clean up
     && rm -rf /var/lib/apt/lists/*
