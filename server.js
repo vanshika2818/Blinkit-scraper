@@ -37,18 +37,12 @@ app.get('/api/get-products', async (req, res) => {
 async function scrapeBlinkit(pincode) {
     let browser = null; 
 
-   try {
+    try {
         // --- A. Launch the Browser (AUTOMATED MODE) ---
         console.log("Launching headless browser...");
         browser = await puppeteer.launch({
-            headless: true, 
-            executablePath: puppeteer.executablePath(), // <-- THIS IS THE FIX
-            args: [
-                '--no-sandbox', 
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage', // Added for stability
-                '--single-process'         // Added for stability
-            ] 
+            headless: true, // Run invisibly
+            args: ['--no-sandbox', '--disable-setuid-sandbox'] 
         });
         const page = await browser.newPage();
         
@@ -107,8 +101,8 @@ async function scrapeBlinkit(pincode) {
         
         // --- G. THIS IS THE FIX ---
         // We must add a small, dumb pause here for the JS page transition to begin
-        console.log("Waiting 3 seconds for search page to load...");
-        await new Promise(r => setTimeout(r, 3000));
+        console.log("Waiting 6 seconds for search page to load...");
+        await new Promise(r => setTimeout(r, 6000));
         
         // --- H. Find the REAL Search Input ---
         // Now we wait for the input bar, which we know is correct.
@@ -123,7 +117,6 @@ async function scrapeBlinkit(pincode) {
         return { headphones, earbuds };
 
     } catch (error) {
-        // Line 120 from your error log
         throw new Error(`Puppeteer error: ${error.message}`);
     } finally {
         // --- J. Always Close the Browser ---
